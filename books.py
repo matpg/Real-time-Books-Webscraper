@@ -64,20 +64,31 @@ def data_extract(genre):
         Price=prices,
         Availability=availability,
     )
-    df = pd.DataFrame(data)
     # save to csv file 
-    df.to_csv(f"{genre}.csv")
-    filename = f"{genre}.csv"
-    return df, filename
+    df = pd.DataFrame(data)
+    file_name = f"{genre}_books.csv"
+    return df, file_name
 
 
 # add a sidebar to select genre
 option = st.sidebar.selectbox("Genres", genres)
 
 # show the dataframe with a big size window
-df_books_scrape, csv_file = data_extract(option)
+df_books_scrape, file_name = data_extract(option)
 st.dataframe(df_books_scrape)
-st.download_button('Download', csv_file)
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+csv_file = convert_df(df_books_scrape)
+
+st.download_button(
+    label="Download data as CSV",
+    data=csv_file,
+    file_name=file_name,
+    mime='text/csv'
+)
 # convert ratings words to numeric ratings
 def convert_rating(rating):
     if rating == "One":
